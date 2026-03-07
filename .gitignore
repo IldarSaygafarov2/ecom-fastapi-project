@@ -25,6 +25,8 @@ htmlcov/
 # Environment files
 .env
 .env.local
+.env.*
+!.env.example
 
 # Local databases and logs
 *.sqlite3
@@ -36,3 +38,6 @@ test.db
 .DS_Store
 .idea/
 .vscode/
+
+# Deployment artifacts
+deploy/certbot/conf/
