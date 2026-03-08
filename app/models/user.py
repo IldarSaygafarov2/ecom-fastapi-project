@@ -20,3 +20,4 @@ class User(Base):
 
     cart = relationship("Cart", back_populates="user", uselist=False)
     orders = relationship("Order", back_populates="user")
+    comments = relationship("ProductComment", back_populates="user", cascade="all, delete-orphan")

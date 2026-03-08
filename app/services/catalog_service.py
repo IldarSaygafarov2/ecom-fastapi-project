@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.media import remove_local_media_file
 from app.models.category import Category
 from app.models.product import Product
 from app.repositories.category_repository import CategoryRepository
@@ -73,9 +74,12 @@ class CatalogService:
         product = await self.products.get(product_id)
         if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        old_image_url = product.image_url
         for key, value in payload.model_dump(exclude_unset=True).items():
             setattr(product, key, value)
         updated = await self.products.update(product)
+        if old_image_url != updated.image_url:
+            remove_local_media_file(old_image_url)
         await self._invalidate_product_cache(product_id)
         return updated
 
@@ -83,6 +87,7 @@ class CatalogService:
         product = await self.products.get(product_id)
         if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        remove_local_media_file(product.image_url)
         await self.products.delete(product)
         await self._invalidate_product_cache(product_id)
 
@@ -96,6 +101,7 @@ class CatalogService:
             "id": product.id,
             "name": product.name,
             "description": product.description,
+            "image_url": product.image_url,
             "price": product.price,
             "stock": product.stock,
             "category_id": product.category_id,

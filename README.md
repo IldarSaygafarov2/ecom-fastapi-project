@@ -6,6 +6,7 @@ Async FastAPI backend for eCommerce with:
 - Redis cache + rate limiting
 - BackgroundTasks + Celery
 - Alembic migrations
+- React frontend (Vite + TypeScript)
 - Docker and CI
 
 ## Run locally
@@ -24,10 +25,31 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
+Frontend standalone:
+
+```bash
+cd frontend
+cp .env.example .env
+npm ci
+npm run dev
+```
+
+- SPA URL: `http://localhost:5173`
+- API base via env: `VITE_API_BASE_URL`
+
 ## API docs
 
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
+
+## Frontend architecture (high-level)
+
+- React 19 + Vite + TypeScript
+- React Router (public/shop/admin namespaces)
+- TanStack Query for server state
+- React Hook Form + Zod for forms
+- JWT access/refresh auth with role guards
+- Unit tests (Vitest) + E2E smoke (Playwright)
 
 ## Deploy to Ubuntu VPS (Docker Compose)
 

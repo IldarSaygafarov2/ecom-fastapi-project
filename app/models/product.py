@@ -12,6 +12,7 @@ class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255), index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     stock: Mapped[int] = mapped_column(default=0, nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), index=True)
@@ -19,3 +20,4 @@ class Product(Base):
     category = relationship("Category", back_populates="products")
     cart_items = relationship("CartItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
+    comments = relationship("ProductComment", back_populates="product", cascade="all, delete-orphan")

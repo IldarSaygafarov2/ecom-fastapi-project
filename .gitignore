@@ -33,6 +33,7 @@ htmlcov/
 *.db
 test.db
 *.log
+media/
 
 # IDE / OS
 .DS_Store
@@ -41,3 +42,10 @@ test.db
 
 # Deployment artifacts
 deploy/certbot/conf/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/

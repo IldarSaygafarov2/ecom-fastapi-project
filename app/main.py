@@ -2,17 +2,23 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import rate_limit_handler
-from app.db.session import dispose_engine
+from app.core.media import ensure_media_dirs
+from app.db.session import SessionLocal, dispose_engine
+from app.services.bootstrap_service import BootstrapService
 from app.services.cache import init_redis_pool, shutdown_redis_pool
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    ensure_media_dirs()
+    async with SessionLocal() as session:
+        await BootstrapService(session).ensure_admin_user()
     await init_redis_pool()
     yield
     await shutdown_redis_pool()
@@ -40,4 +46,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+ensure_media_dirs()
+app.mount(settings.MEDIA_URL_PREFIX, StaticFiles(directory=settings.MEDIA_ROOT), name="media")
 app.include_router(api_router, prefix=settings.API_V1_STR)

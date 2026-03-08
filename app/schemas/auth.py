@@ -26,3 +26,7 @@ class TokenPair(ORMModel):
 class LoginRequest(ORMModel):
     email: EmailStr
     password: str
+
+
+class RefreshRequest(ORMModel):
+    refresh_token: str

@@ -120,7 +120,9 @@ class OrderService:
         )
         return created
 
-    async def list_orders(self, user_id: int) -> list[Order]:
+    async def list_orders(self, user_id: int | None = None) -> list[Order]:
+        if user_id is None:
+            return await self.order_repo.list_all()
         return await self.order_repo.list_for_user(user_id)
 
     async def update_status(self, order_id: int, status_payload: OrderStatus) -> Order:

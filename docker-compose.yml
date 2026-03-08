@@ -3,6 +3,8 @@ services:
     build: .
     env_file:
       - .env
+    volumes:
+      - ./media:/app/media
     depends_on:
       - db
       - redis
@@ -37,10 +39,17 @@ services:
     ports:
       - "6379:6379"
 
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+
   nginx:
     image: nginx:1.27-alpine
     depends_on:
       - api
+      - frontend
     ports:
       - "80:80"
     volumes:

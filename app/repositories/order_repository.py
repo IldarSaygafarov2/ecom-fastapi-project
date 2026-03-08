@@ -34,6 +34,11 @@ class OrderRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def list_all(self) -> list[Order]:
+        stmt = select(Order).options(selectinload(Order.items)).order_by(Order.id.desc())
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
     async def update(self, order: Order) -> Order:
         await self.session.commit()
         await self.session.refresh(order)

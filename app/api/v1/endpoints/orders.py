@@ -25,7 +25,8 @@ async def list_orders(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[OrderRead]:
-    items = await OrderService(db).list_orders(current_user.id)
+    user_id = None if current_user.role == UserRole.admin else current_user.id
+    items = await OrderService(db).list_orders(user_id)
     return [serialize_order(item) for item in items]
 
 

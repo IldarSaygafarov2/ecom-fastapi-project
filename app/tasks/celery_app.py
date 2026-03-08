@@ -6,6 +6,7 @@ celery_app = Celery(
     "task_flow_api_2",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_RESULT_BACKEND,
+    include=["app.tasks.worker_tasks"],
 )
 
 celery_app.conf.update(

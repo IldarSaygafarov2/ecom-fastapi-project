@@ -37,6 +37,12 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list[str] | str = ["http://localhost:3000", "http://localhost:5173"]
     DEFAULT_RATE_LIMIT: str = "100/minute"
+    ADMIN_EMAIL: str = "admin@example.com"
+    ADMIN_PASSWORD: str = "change-me-admin"
+    ADMIN_FULL_NAME: str = "System Admin"
+    MEDIA_ROOT: str = "./media"
+    MEDIA_URL_PREFIX: str = "/media"
+    MAX_IMAGE_UPLOAD_SIZE_MB: int = 5
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
