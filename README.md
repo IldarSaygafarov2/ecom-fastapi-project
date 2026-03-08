@@ -77,9 +77,11 @@ mkdir -p deploy/certbot/www deploy/certbot/conf
 2. Temporarily use ACME-only nginx config:
 
 ```bash
-# in docker-compose.prod.yml temporarily point nginx config volume to:
-# ./deploy/nginx.acme.conf:/etc/nginx/conf.d/default.conf:ro
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build nginx
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.prod.yml \
+  -f docker-compose.acme.yml \
+  up -d --build nginx
 ```
 
 3. Issue certificate:
@@ -94,9 +96,8 @@ docker run --rm \
   --email you@example.com --agree-tos --no-eff-email
 ```
 
-4. Restore nginx volume to `./deploy/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro`
-   in `docker-compose.prod.yml`, then set your real domain in `deploy/nginx.prod.conf`
-   by replacing `api.yourdomain.com` in certificate paths.
+4. Set your real domain in `deploy/nginx.prod.conf` by replacing
+   `api.yourdomain.com` in certificate paths.
 
 5. Restart stack:
 
