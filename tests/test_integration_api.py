@@ -12,7 +12,9 @@ async def _register_and_login(client, email: str, password: str) -> str:
         json={"email": email, "password": password, "full_name": "Test User"},
     )
     assert register_resp.status_code in (200, 201)
-    login_resp = await client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    login_resp = await client.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}
+    )
     assert login_resp.status_code == 200
     return login_resp.json()["access_token"]
 
@@ -27,10 +29,14 @@ async def test_health(client):
 @pytest.mark.asyncio
 async def test_catalog_cart_order_flow(client, db_session):
     admin_token = await _register_and_login(client, "admin@example.com", "secret123")
-    customer_token = await _register_and_login(client, "customer@example.com", "secret123")
+    customer_token = await _register_and_login(
+        client, "customer@example.com", "secret123"
+    )
 
     # Promote first user to admin role for protected catalog endpoints.
-    result = await db_session.execute(select(User).where(User.email == "admin@example.com"))
+    result = await db_session.execute(
+        select(User).where(User.email == "admin@example.com")
+    )
     admin_user = result.scalar_one()
     admin_user.role = UserRole.admin
     await db_session.commit()
@@ -46,7 +52,7 @@ async def test_catalog_cart_order_flow(client, db_session):
     product_resp = await client.post(
         "/api/v1/products/",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={
+        data={
             "name": "FastAPI Book",
             "description": "Async backend guide",
             "price": "19.99",
@@ -74,7 +80,9 @@ async def test_catalog_cart_order_flow(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_order_flow_survives_celery_delay_failures(client, db_session, monkeypatch):
+async def test_order_flow_survives_celery_delay_failures(
+    client, db_session, monkeypatch
+):
     delay_calls: list[str] = []
 
     def _fail_delay(task_name: str):
@@ -101,9 +109,13 @@ async def test_order_flow_survives_celery_delay_failures(client, db_session, mon
     )
 
     admin_token = await _register_and_login(client, "admin2@example.com", "secret123")
-    customer_token = await _register_and_login(client, "customer2@example.com", "secret123")
+    customer_token = await _register_and_login(
+        client, "customer2@example.com", "secret123"
+    )
 
-    result = await db_session.execute(select(User).where(User.email == "admin2@example.com"))
+    result = await db_session.execute(
+        select(User).where(User.email == "admin2@example.com")
+    )
     admin_user = result.scalar_one()
     admin_user.role = UserRole.admin
     await db_session.commit()
@@ -119,7 +131,7 @@ async def test_order_flow_survives_celery_delay_failures(client, db_session, mon
     product_resp = await client.post(
         "/api/v1/products/",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={
+        data={
             "name": "Task Device",
             "description": "Workflow helper",
             "price": "29.99",

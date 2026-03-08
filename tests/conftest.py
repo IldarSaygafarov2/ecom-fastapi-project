@@ -5,15 +5,14 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.api.deps import get_db
+from app.core.config import settings
 from app.db.base import Base
 from app.main import app
-
-TEST_DB_URL = "sqlite+aiosqlite:///./test.db"
 
 
 @pytest_asyncio.fixture(scope="session")
 async def engine():
-    engine = create_async_engine(TEST_DB_URL, future=True)
+    engine = create_async_engine(settings.TEST_DATABASE_URL, future=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
@@ -37,6 +36,8 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
     app.dependency_overrides[get_db] = _override_get_db
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as test_client:
+    async with AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()

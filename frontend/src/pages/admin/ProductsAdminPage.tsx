@@ -4,9 +4,8 @@ import { Link } from "react-router-dom"
 
 import { categoriesApi, productsApi } from "@/api"
 import { getApiErrorMessage } from "@/api/error"
+import { PRODUCT_SORT_OPTIONS, sortProducts, type ProductSortMode } from "@/lib/sort"
 import { money } from "@/lib/utils"
-
-type SortMode = "name_asc" | "price_asc" | "price_desc" | "stock_desc"
 
 export default function ProductsAdminPage() {
   const queryClient = useQueryClient()
@@ -17,7 +16,7 @@ export default function ProductsAdminPage() {
   const [categoryId, setCategoryId] = useState<number>(0)
   const [search, setSearch] = useState("")
   const [filterCategoryId, setFilterCategoryId] = useState<number | undefined>(undefined)
-  const [sortMode, setSortMode] = useState<SortMode>("name_asc")
+  const [sortMode, setSortMode] = useState<ProductSortMode>("name_asc")
   const [photoFileById, setPhotoFileById] = useState<Record<number, File | null>>({})
 
   const productsQuery = useQuery({ queryKey: ["products", "admin"], queryFn: () => productsApi.list() })
@@ -28,25 +27,12 @@ export default function ProductsAdminPage() {
   )
   const filteredProducts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
-    const list = (productsQuery.data ?? []).filter((product) => {
+    const filtered = (productsQuery.data ?? []).filter((product) => {
       const byCategory = filterCategoryId ? product.category_id === filterCategoryId : true
       const bySearch = normalizedSearch ? product.name.toLowerCase().includes(normalizedSearch) : true
       return byCategory && bySearch
     })
-    switch (sortMode) {
-      case "price_asc":
-        list.sort((a, b) => Number(a.price) - Number(b.price))
-        break
-      case "price_desc":
-        list.sort((a, b) => Number(b.price) - Number(a.price))
-        break
-      case "stock_desc":
-        list.sort((a, b) => b.stock - a.stock)
-        break
-      default:
-        list.sort((a, b) => a.name.localeCompare(b.name))
-    }
-    return list
+    return sortProducts(filtered, sortMode)
   }, [productsQuery.data, filterCategoryId, search, sortMode])
 
   const createMutation = useMutation({
@@ -152,11 +138,12 @@ export default function ProductsAdminPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
-              <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
-                <option value="name_asc">Sort: Name A-Z</option>
-                <option value="price_asc">Sort: Price low to high</option>
-                <option value="price_desc">Sort: Price high to low</option>
-                <option value="stock_desc">Sort: Stock high to low</option>
+              <select value={sortMode} onChange={(event) => setSortMode(event.target.value as ProductSortMode)}>
+                {PRODUCT_SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="catalog-categories" role="list" aria-label="Filter by category">
