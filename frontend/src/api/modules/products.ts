@@ -8,7 +8,7 @@ interface ProductQuery {
 
 export const productsApi = {
   list(params?: ProductQuery) {
-    return http.get<ProductRead[]>("/products", { params }).then((res) => res.data)
+    return http.get<ProductRead[]>("/products/", { params }).then((res) => res.data)
   },
   get(productId: number) {
     return http.get<ProductRead>(`/products/${productId}`).then((res) => res.data)
@@ -26,7 +26,7 @@ export const productsApi = {
       formData.append("image", payload.image)
     }
     return http
-      .post<ProductRead>("/products", formData, {
+      .post<ProductRead>("/products/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((res) => res.data)

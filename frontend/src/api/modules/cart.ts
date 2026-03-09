@@ -8,7 +8,7 @@ interface CartItemUpsert {
 
 export const cartApi = {
   get() {
-    return http.get<CartRead>("/cart").then((res) => res.data)
+    return http.get<CartRead>("/cart/").then((res) => res.data)
   },
   upsertItem(payload: CartItemUpsert) {
     return http.put<CartRead>("/cart/items", payload).then((res) => res.data)
@@ -17,6 +17,6 @@ export const cartApi = {
     return http.delete<CartRead>(`/cart/items/${productId}`).then((res) => res.data)
   },
   clear() {
-    return http.delete("/cart")
+    return http.delete("/cart/")
   },
 }
