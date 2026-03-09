@@ -20,13 +20,15 @@ export function MainLayout() {
           {auth.isAuthenticated ? (
             <>
               <span>{auth.user?.email}</span>
-              <button onClick={auth.logout}>Logout</button>
+              <button className="btn" onClick={auth.logout}>
+                Logout
+              </button>
             </>
           ) : (
-            <>
+            <nav>
               <NavLink to="/login">Login</NavLink>
               <NavLink to="/register">Register</NavLink>
-            </>
+            </nav>
           )}
         </div>
       </header>

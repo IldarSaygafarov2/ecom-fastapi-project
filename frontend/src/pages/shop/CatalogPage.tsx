@@ -23,7 +23,11 @@ export default function CatalogPage() {
   })
   const addToCartMutation = useMutation({
     mutationFn: (productId: number) => cartApi.upsertItem({ product_id: productId, quantity: 1 }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onSuccess: (_, productId) => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
+      queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["product", productId] })
+    },
   })
 
   const products = useMemo(

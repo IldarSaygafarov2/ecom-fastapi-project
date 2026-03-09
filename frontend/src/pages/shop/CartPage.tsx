@@ -11,10 +11,20 @@ export default function CartPage() {
     queryFn: cartApi.get,
   })
 
+  const removeMutation = useMutation({
+    mutationFn: cartApi.removeItem,
+    onSuccess: async (_, productId) => {
+      await queryClient.invalidateQueries({ queryKey: ["cart"] })
+      queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["product", productId] })
+    },
+  })
   const clearMutation = useMutation({
     mutationFn: cartApi.clear,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["cart"] })
+      queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["product"] })
     },
   })
   const checkoutMutation = useMutation({
@@ -22,6 +32,8 @@ export default function CartPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["cart"] })
       await queryClient.invalidateQueries({ queryKey: ["orders"] })
+      queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["product"] })
     },
   })
 
@@ -41,17 +53,37 @@ export default function CartPage() {
   return (
     <section className="card">
       <h1>Your cart</h1>
-      {cart.items.map((item) => (
-        <p key={item.id}>
-          Product #{item.product_id}: {item.quantity} x {money(item.price)} = {money(item.line_total)}
-        </p>
-      ))}
+      <ul className="cart-items">
+        {cart.items.map((item) => (
+          <li key={item.id} className="cart-item">
+            <span>
+              Product #{item.product_id}: {item.quantity} × {money(item.price)} = {money(item.line_total)}
+            </span>
+            <button
+              className="btn btn-danger"
+              onClick={() => removeMutation.mutate(item.product_id)}
+              disabled={removeMutation.isPending}
+              title="Remove from cart"
+            >
+              Remove
+            </button>
+          </li>
+        ))}
+      </ul>
       <p>Total: {money(cart.total_amount)}</p>
       <div className="row">
-        <button onClick={() => checkoutMutation.mutate()} disabled={checkoutMutation.isPending}>
+        <button
+          className="btn"
+          onClick={() => checkoutMutation.mutate()}
+          disabled={checkoutMutation.isPending}
+        >
           Create order
         </button>
-        <button onClick={() => clearMutation.mutate()} disabled={clearMutation.isPending}>
+        <button
+          className="btn"
+          onClick={() => clearMutation.mutate()}
+          disabled={clearMutation.isPending}
+        >
           Clear cart
         </button>
       </div>

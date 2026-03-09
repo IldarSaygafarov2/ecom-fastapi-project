@@ -44,7 +44,7 @@ export default function LoginPage() {
         <input placeholder="Password" type="password" {...register("password")} />
         {errors.password && <span className="error">{errors.password.message}</span>}
         {errors.root && <span className="error">{errors.root.message}</span>}
-        <button disabled={isSubmitting} type="submit">
+        <button className="btn" disabled={isSubmitting} type="submit">
           {isSubmitting ? "Loading..." : "Login"}
         </button>
       </form>

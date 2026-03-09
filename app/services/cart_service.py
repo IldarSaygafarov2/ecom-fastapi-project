@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.cart import CartItem
+from app.services.cache import delete_by_prefix
 from app.repositories.cart_repository import CartRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.cart import CartRead
@@ -37,6 +38,7 @@ class CartService:
 
         product.stock -= quantity
         await self.product_repo.update(product)
+        await self._invalidate_product_cache(product_id)
 
         if item:
             item.quantity = new_total
@@ -47,12 +49,34 @@ class CartService:
             )
         return await self.get_cart(user_id)
 
+    async def remove_item(self, user_id: int, product_id: int) -> CartRead:
+        cart = await self.cart_repo.get_or_create_for_user(user_id)
+        item = await self.cart_repo.get_item(cart.id, product_id)
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Item not in cart",
+            )
+        product = await self.product_repo.get(product_id)
+        if product:
+            product.stock += item.quantity
+            await self.product_repo.update(product)
+            await self._invalidate_product_cache(product_id)
+        await self.cart_repo.remove_item(cart.id, product_id)
+        return await self.get_cart(user_id)
+
     async def clear_cart(self, user_id: int) -> None:
         cart = await self.cart_repo.get_or_create_for_user(user_id)
         for item in cart.items:
             item.product.stock += item.quantity
             await self.product_repo.update(item.product)
+            await self._invalidate_product_cache(item.product_id)
         await self.cart_repo.clear(cart.id)
+
+    @staticmethod
+    async def _invalidate_product_cache(product_id: int) -> None:
+        await delete_by_prefix("products:list:")
+        await delete_by_prefix(f"products:detail:{product_id}")
 
     @staticmethod
     def _to_schema(cart) -> CartRead:

@@ -43,6 +43,14 @@ class CartRepository:
         await self.session.refresh(item)
         return item
 
+    async def remove_item(self, cart_id: int, product_id: int) -> CartItem | None:
+        item = await self.get_item(cart_id, product_id)
+        if not item:
+            return None
+        await self.session.delete(item)
+        await self.session.commit()
+        return item
+
     async def clear(self, cart_id: int) -> None:
         await self.session.execute(delete(CartItem).where(CartItem.cart_id == cart_id))
         await self.session.commit()

@@ -13,6 +13,9 @@ export const cartApi = {
   upsertItem(payload: CartItemUpsert) {
     return http.put<CartRead>("/cart/items", payload).then((res) => res.data)
   },
+  removeItem(productId: number) {
+    return http.delete<CartRead>(`/cart/items/${productId}`).then((res) => res.data)
+  },
   clear() {
     return http.delete("/cart")
   },

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link, useParams } from "react-router-dom"
 
-import { commentsApi, productsApi } from "@/api"
+import { cartApi, commentsApi, productsApi } from "@/api"
 import { getApiErrorMessage } from "@/api/error"
 import { useAuth } from "@/features/auth/use-auth"
 import { money } from "@/lib/utils"
@@ -44,6 +44,15 @@ export default function ProductPage() {
     },
   })
 
+  const addToCartMutation = useMutation({
+    mutationFn: () => cartApi.upsertItem({ product_id: numericId, quantity: 1 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
+      queryClient.invalidateQueries({ queryKey: ["products"] })
+      queryClient.invalidateQueries({ queryKey: ["product", numericId] })
+    },
+  })
+
   if (!Number.isFinite(numericId)) {
     return <p className="error">Invalid product id.</p>
   }
@@ -75,9 +84,18 @@ export default function ProductPage() {
         <p>{product.description ?? "No description"}</p>
         <p>Price: {money(product.price)}</p>
         <p>Stock: {product.stock}</p>
-        <Link className="button-like" to="/shop">
-          Back to catalog
-        </Link>
+        <div className="row">
+          <Link className="button-like" to="/shop">
+            Back to catalog
+          </Link>
+          <button
+            className="btn"
+            onClick={() => addToCartMutation.mutate()}
+            disabled={addToCartMutation.isPending || product.stock < 1}
+          >
+            Add to cart
+          </button>
+        </div>
       </article>
 
       <section className="product-comments">

@@ -46,7 +46,7 @@ export default function RegisterPage() {
         {errors.password && <span className="error">{errors.password.message}</span>}
         <input placeholder="Full name" {...register("fullName")} />
         {errors.root && <span className="error">{errors.root.message}</span>}
-        <button disabled={isSubmitting} type="submit">
+        <button className="btn" disabled={isSubmitting} type="submit">
           {isSubmitting ? "Loading..." : "Register"}
         </button>
       </form>

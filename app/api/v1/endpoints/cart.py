@@ -26,6 +26,15 @@ async def upsert_cart_item(
     return await CartService(db).upsert_item(current_user.id, payload.product_id, payload.quantity)
 
 
+@router.delete("/items/{product_id}", response_model=CartRead)
+async def remove_cart_item(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> CartRead:
+    return await CartService(db).remove_item(current_user.id, product_id)
+
+
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_cart(
     db: AsyncSession = Depends(get_db),
