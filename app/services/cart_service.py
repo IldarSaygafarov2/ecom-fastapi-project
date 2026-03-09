@@ -25,19 +25,33 @@ class CartService:
         product = await self.product_repo.get(product_id)
         if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-        if product.stock < quantity:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient stock")
 
         item = await self.cart_repo.get_item(cart.id, product_id)
+        current_in_cart = item.quantity if item else 0
+        new_total = current_in_cart + quantity
+        if new_total > product.stock:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Insufficient stock. Available: {product.stock}, requested: {new_total}",
+            )
+
+        product.stock -= quantity
+        await self.product_repo.update(product)
+
         if item:
-            item.quantity = quantity
+            item.quantity = new_total
             await self.cart_repo.update_item(item)
         else:
-            await self.cart_repo.add_item(CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity))
+            await self.cart_repo.add_item(
+                CartItem(cart_id=cart.id, product_id=product_id, quantity=quantity)
+            )
         return await self.get_cart(user_id)
 
     async def clear_cart(self, user_id: int) -> None:
         cart = await self.cart_repo.get_or_create_for_user(user_id)
+        for item in cart.items:
+            item.product.stock += item.quantity
+            await self.product_repo.update(item.product)
         await self.cart_repo.clear(cart.id)
 
     @staticmethod

@@ -70,11 +70,12 @@ class OrderService:
         order_items: list[OrderItem] = []
         for item in cart.items:
             product = await self.product_repo.get(item.product_id)
-            if not product or product.stock < item.quantity:
+            if not product:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient stock"
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Product {item.product_id} not found",
                 )
-            product.stock -= item.quantity
+            # Stock was already decreased when adding to cart
             line_price = product.price
             total += line_price * item.quantity
             order_items.append(
