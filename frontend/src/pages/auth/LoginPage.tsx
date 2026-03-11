@@ -26,14 +26,15 @@ export default function LoginPage() {
   })
 
   return (
-    <section className="card">
-      <h1>Sign in</h1>
+    <section className="card" style={{ maxWidth: 420, margin: "0 auto" }}>
+      <h1 className="page-title">Sign in</h1>
+      <p className="section-desc">Enter your credentials to access your account</p>
       <form
         className="form"
         onSubmit={handleSubmit(async (values) => {
           try {
             await auth.login(values.email, values.password)
-            navigate("/shop")
+            navigate("/")
           } catch (error) {
             setError("root", { message: getApiErrorMessage(error) })
           }

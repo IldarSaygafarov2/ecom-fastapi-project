@@ -1,11 +1,10 @@
 import { Suspense, lazy, type ReactNode } from "react"
-import { createBrowserRouter } from "react-router-dom"
+import { createBrowserRouter, Navigate } from "react-router-dom"
 
 import { AdminLayout } from "@/app/layouts/AdminLayout"
 import { MainLayout } from "@/app/layouts/MainLayout"
 import { RequireAuth, RequireRole } from "@/features/auth/guards"
 
-const HomePage = lazy(() => import("@/pages/public/HomePage"))
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"))
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"))
 const CatalogPage = lazy(() => import("@/pages/shop/CatalogPage"))
@@ -29,9 +28,9 @@ export const router = createBrowserRouter([
     path: "/",
     element: <MainLayout />,
     children: [
-      { index: true, element: withFallback(<HomePage />) },
-      { path: "shop", element: withFallback(<CatalogPage />) },
-      { path: "shop/:productId", element: withFallback(<ProductPage />) },
+      { index: true, element: withFallback(<CatalogPage />) },
+      { path: "shop", element: <Navigate to="/" replace /> },
+      { path: "shop/:productSlug", element: withFallback(<ProductPage />) },
       { path: "login", element: withFallback(<LoginPage />) },
       { path: "register", element: withFallback(<RegisterPage />) },
       { path: "403", element: withFallback(<ForbiddenPage />) },
@@ -52,6 +51,7 @@ export const router = createBrowserRouter([
               {
                 element: <AdminLayout />,
                 children: [
+                  { index: true, element: <Navigate to="/admin/categories" replace /> },
                   { path: "categories", element: withFallback(<AdminCategoriesPage />) },
                   { path: "products", element: withFallback(<AdminProductsPage />) },
                   { path: "products/:productId", element: withFallback(<AdminProductDetailPage />) },

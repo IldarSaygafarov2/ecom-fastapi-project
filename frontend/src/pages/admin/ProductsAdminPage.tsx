@@ -109,6 +109,7 @@ export default function ProductsAdminPage() {
           </select>
         </label>
         <button
+          className="btn"
           disabled={!name.trim() || !categoryId}
           onClick={() =>
             createMutation.mutate({
@@ -216,7 +217,7 @@ export default function ProductsAdminPage() {
                       Remove photo
                     </button>
                   )}
-                  <button onClick={() => deleteMutation.mutate(product.id)}>Delete</button>
+                  <button className="btn btn-danger" onClick={() => deleteMutation.mutate(product.id)}>Delete</button>
                 </article>
               ))}
             </div>

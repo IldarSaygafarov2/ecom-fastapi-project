@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +22,14 @@ class ProductRepository:
     async def get(self, product_id: int) -> Product | None:
         result = await self.session.execute(select(Product).where(Product.id == product_id))
         return result.scalar_one_or_none()
+
+    async def get_by_slug(self, slug: str) -> Product | None:
+        result = await self.session.execute(select(Product).where(Product.slug == slug))
+        return result.scalar_one_or_none()
+
+    async def get_existing_slugs(self) -> List[str]:
+        result = await self.session.execute(select(Product.slug))
+        return list(result.scalars().all())
 
     async def create(self, product: Product) -> Product:
         self.session.add(product)

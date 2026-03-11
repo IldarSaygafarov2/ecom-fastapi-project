@@ -27,3 +27,4 @@ class ProductUpdate(ORMModel):
 
 class ProductRead(ProductBase):
     id: int
+    slug: str

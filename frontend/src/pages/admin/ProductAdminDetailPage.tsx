@@ -118,17 +118,18 @@ function ProductEditForm({
       </label>
       <div className="row admin-detail-actions">
         <button
+          className="btn"
           disabled={updateMutation.isPending || !name.trim() || !categoryId}
           onClick={() => updateMutation.mutate()}
         >
           Save changes
         </button>
         {product.image_url && (
-          <button disabled={removeImageMutation.isPending} onClick={() => removeImageMutation.mutate()}>
+          <button className="btn" disabled={removeImageMutation.isPending} onClick={() => removeImageMutation.mutate()}>
             Remove photo
           </button>
         )}
-        <button disabled={deleteMutation.isPending} onClick={() => deleteMutation.mutate()}>
+        <button className="btn btn-danger" disabled={deleteMutation.isPending} onClick={() => deleteMutation.mutate()}>
           Delete product
         </button>
       </div>
@@ -163,7 +164,7 @@ export default function ProductAdminDetailPage() {
     <section>
       <div className="admin-list-head">
         <h2 className="admin-list-title">Edit product #{product.id}</h2>
-        <Link className="button-like" to="/admin/products">
+        <Link className="btn button-like" to="/admin/products">
           Back to products
         </Link>
       </div>

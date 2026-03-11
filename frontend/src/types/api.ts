@@ -33,6 +33,7 @@ export interface CategoryUpdate {
 export interface ProductRead {
   id: number
   name: string
+  slug: string
   description: string | null
   image_url: string | null
   price: string

@@ -8,6 +8,7 @@ from app.repositories.category_repository import CategoryRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.category import CategoryCreate, CategoryUpdate
 from app.schemas.product import ProductCreate, ProductUpdate
+from app.core.slug import make_unique_slug, slugify
 from app.services.cache import delete_by_prefix, get_json, set_json
 
 
@@ -64,10 +65,26 @@ class CatalogService:
         await set_json(cache_key, self._product_to_dict(product))
         return product
 
+    async def get_product_by_slug(self, slug: str) -> Product:
+        cache_key = f"products:slug:{slug}"
+        cached = await get_json(cache_key)
+        if cached:
+            return Product(**cached)
+        product = await self.products.get_by_slug(slug)
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        await set_json(cache_key, self._product_to_dict(product))
+        return product
+
     async def create_product(self, payload: ProductCreate) -> Product:
-        product = Product(**payload.model_dump())
+        existing = await self.products.get_existing_slugs()
+        base_slug = slugify(payload.name)
+        slug = make_unique_slug(base_slug, existing)
+        data = payload.model_dump()
+        data["slug"] = slug
+        product = Product(**data)
         created = await self.products.create(product)
-        await self._invalidate_product_cache(created.id)
+        await self._invalidate_product_cache(created.id, created.slug)
         return created
 
     async def update_product(self, product_id: int, payload: ProductUpdate) -> Product:
@@ -75,12 +92,17 @@ class CatalogService:
         if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
         old_image_url = product.image_url
-        for key, value in payload.model_dump(exclude_unset=True).items():
+        update_data = payload.model_dump(exclude_unset=True)
+        if "name" in update_data:
+            existing = await self.products.get_existing_slugs()
+            base_slug = slugify(update_data["name"])
+            update_data["slug"] = make_unique_slug(base_slug, [s for s in existing if s != product.slug])
+        for key, value in update_data.items():
             setattr(product, key, value)
         updated = await self.products.update(product)
         if old_image_url != updated.image_url:
             remove_local_media_file(old_image_url)
-        await self._invalidate_product_cache(product_id)
+        await self._invalidate_product_cache(product_id, getattr(updated, "slug", None))
         return updated
 
     async def delete_product(self, product_id: int) -> None:
@@ -89,17 +111,20 @@ class CatalogService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
         remove_local_media_file(product.image_url)
         await self.products.delete(product)
-        await self._invalidate_product_cache(product_id)
+        await self._invalidate_product_cache(product_id, getattr(product, "slug", None))
 
-    async def _invalidate_product_cache(self, product_id: int) -> None:
+    async def _invalidate_product_cache(self, product_id: int, slug: str | None = None) -> None:
         await delete_by_prefix("products:list:")
         await delete_by_prefix(f"products:detail:{product_id}")
+        if slug:
+            await delete_by_prefix(f"products:slug:{slug}")
 
     @staticmethod
     def _product_to_dict(product: Product) -> dict:
         return {
             "id": product.id,
             "name": product.name,
+            "slug": product.slug,
             "description": product.description,
             "image_url": product.image_url,
             "price": product.price,

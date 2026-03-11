@@ -13,6 +13,9 @@ export const productsApi = {
   get(productId: number) {
     return http.get<ProductRead>(`/products/${productId}`).then((res) => res.data)
   },
+  getBySlug(slug: string) {
+    return http.get<ProductRead>(`/products/slug/${slug}`).then((res) => res.data)
+  },
   create(payload: ProductCreate) {
     const formData = new FormData()
     formData.append("name", payload.name)

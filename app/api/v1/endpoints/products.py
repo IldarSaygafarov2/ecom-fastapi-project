@@ -29,6 +29,12 @@ async def list_products(
     return [ProductRead.model_validate(item) for item in items]
 
 
+@router.get("/slug/{slug}", response_model=ProductRead)
+async def get_product_by_slug(slug: str, db: AsyncSession = Depends(get_db)) -> ProductRead:
+    item = await CatalogService(db).get_product_by_slug(slug)
+    return ProductRead.model_validate(item)
+
+
 @router.get("/{product_id}", response_model=ProductRead)
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)) -> ProductRead:
     item = await CatalogService(db).get_product(product_id)

@@ -12,49 +12,51 @@ function formatCommentDate(iso: string): string {
 }
 
 export default function ProductPage() {
-  const { productId } = useParams()
-  const numericId = Number(productId)
+  const { productSlug } = useParams()
   const queryClient = useQueryClient()
   const auth = useAuth()
   const [commentText, setCommentText] = useState("")
 
   const productQuery = useQuery({
-    queryKey: ["product", numericId],
-    queryFn: () => productsApi.get(numericId),
-    enabled: Number.isFinite(numericId),
+    queryKey: ["product", productSlug],
+    queryFn: () => productsApi.getBySlug(productSlug!),
+    enabled: Boolean(productSlug),
   })
   const commentsQuery = useQuery({
-    queryKey: ["product", numericId, "comments"],
-    queryFn: () => commentsApi.list(numericId),
-    enabled: Number.isFinite(numericId),
+    queryKey: ["product", productQuery.data?.id, "comments"],
+    queryFn: () => commentsApi.list(productQuery.data!.id),
+    enabled: Boolean(productQuery.data?.id),
   })
 
   const createCommentMutation = useMutation({
-    mutationFn: () => commentsApi.create(numericId, { content: commentText }),
+    mutationFn: () =>
+      commentsApi.create(productQuery.data!.id, { content: commentText }),
     onSuccess: () => {
       setCommentText("")
-      queryClient.invalidateQueries({ queryKey: ["product", numericId, "comments"] })
+      queryClient.invalidateQueries({ queryKey: ["product", productSlug, "comments"] })
     },
   })
 
   const deleteCommentMutation = useMutation({
-    mutationFn: (commentId: number) => commentsApi.remove(numericId, commentId),
+    mutationFn: (commentId: number) =>
+      commentsApi.remove(productQuery.data!.id, commentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["product", numericId, "comments"] })
+      queryClient.invalidateQueries({ queryKey: ["product", productSlug, "comments"] })
     },
   })
 
   const addToCartMutation = useMutation({
-    mutationFn: () => cartApi.upsertItem({ product_id: numericId, quantity: 1 }),
+    mutationFn: () =>
+      cartApi.upsertItem({ product_id: productQuery.data!.id, quantity: 1 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] })
       queryClient.invalidateQueries({ queryKey: ["products"] })
-      queryClient.invalidateQueries({ queryKey: ["product", numericId] })
+      queryClient.invalidateQueries({ queryKey: ["product", productSlug] })
     },
   })
 
-  if (!Number.isFinite(numericId)) {
-    return <p className="error">Invalid product id.</p>
+  if (!productSlug) {
+    return <p className="error">Invalid product.</p>
   }
 
   if (productQuery.isLoading) {
@@ -73,7 +75,7 @@ export default function ProductPage() {
   const canDelete = auth.hasRole(["admin"])
 
   return (
-    <section>
+    <section className="shop-section">
       <article className="card product-detail-card">
         {product.image_url ? (
           <img className="product-image product-image-large" src={product.image_url} alt={product.name} />
@@ -84,9 +86,9 @@ export default function ProductPage() {
         <p>{product.description ?? "No description"}</p>
         <p>Price: {money(product.price)}</p>
         <p>Stock: {product.stock}</p>
-        <div className="row">
-          <Link className="button-like" to="/shop">
-            Back to catalog
+        <div className="row" style={{ gap: "0.75rem" }}>
+          <Link className="btn btn-secondary" to="/">
+            Back to products
           </Link>
           <button
             className="btn"
@@ -113,6 +115,7 @@ export default function ProductPage() {
               />
             </label>
             <button
+              className="btn"
               disabled={!commentText.trim() || createCommentMutation.isPending}
               onClick={() => createCommentMutation.mutate()}
             >

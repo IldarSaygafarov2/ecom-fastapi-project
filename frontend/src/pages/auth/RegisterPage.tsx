@@ -27,14 +27,15 @@ export default function RegisterPage() {
   })
 
   return (
-    <section className="card">
-      <h1>Create account</h1>
+    <section className="card" style={{ maxWidth: 420, margin: "0 auto" }}>
+      <h1 className="page-title">Create account</h1>
+      <p className="section-desc">Register to start shopping</p>
       <form
         className="form"
         onSubmit={handleSubmit(async (values) => {
           try {
             await auth.register(values.email, values.password, values.fullName)
-            navigate("/shop")
+            navigate("/")
           } catch (error) {
             setError("root", { message: getApiErrorMessage(error) })
           }

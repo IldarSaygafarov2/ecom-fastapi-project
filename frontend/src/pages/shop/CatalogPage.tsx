@@ -23,10 +23,10 @@ export default function CatalogPage() {
   })
   const addToCartMutation = useMutation({
     mutationFn: (productId: number) => cartApi.upsertItem({ product_id: productId, quantity: 1 }),
-    onSuccess: (_, productId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] })
       queryClient.invalidateQueries({ queryKey: ["products"] })
-      queryClient.invalidateQueries({ queryKey: ["product", productId] })
+      queryClient.invalidateQueries({ queryKey: ["product"] })
     },
   })
 
@@ -36,14 +36,16 @@ export default function CatalogPage() {
   )
 
   return (
-    <section>
-      <h1>Catalog</h1>
-      <div className="card catalog-controls">
+    <section className="shop-section">
+      <h1>TaskFlow Shop</h1>
+      <p className="section-desc">Browse and filter our product selection</p>
+      <div className="catalog-controls">
         <div className="row">
           <input
             placeholder="Search products..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            style={{ flex: 1, maxWidth: 320 }}
           />
           <select value={sortMode} onChange={(event) => setSortMode(event.target.value as ProductSortMode)}>
             {PRODUCT_SORT_OPTIONS.map((opt) => (
@@ -78,29 +80,38 @@ export default function CatalogPage() {
       {productsQuery.isError && <p className="error catalog-feedback">{getApiErrorMessage(productsQuery.error)}</p>}
       {!productsQuery.isLoading && products.length === 0 && <p className="catalog-feedback">No products found.</p>}
       <div className="grid catalog-products-grid">
-        {products.map((product) => (
-          <article className="card catalog-product-card" key={product.id}>
-            {product.image_url ? (
-              <img className="product-image" src={product.image_url} alt={product.name} />
-            ) : (
-              <div className="product-image product-image-placeholder">No image</div>
-            )}
-            <h3 className="entity-title">{product.name}</h3>
-            <p className="entity-description">{product.description ?? "No description"}</p>
-            <p className="entity-main">{money(product.price)}</p>
-            <div className="entity-meta">
-              <span className="badge">Stock: {product.stock}</span>
+        {products.map((product, index) => (
+          <article
+            className="catalog-product-card"
+            key={product.id}
+            style={{ animationDelay: `${0.05 * index}s` }}
+          >
+            <div className="product-image-wrap">
+              {product.image_url ? (
+                <img className="product-image" src={product.image_url} alt={product.name} />
+              ) : (
+                <div className="product-image-placeholder">No image</div>
+              )}
             </div>
-            <div className="row catalog-product-actions">
-              <Link className="button-like" to={`/shop/${product.id}`}>
-                Details
-              </Link>
-              <button
-                onClick={() => addToCartMutation.mutate(product.id)}
-                disabled={addToCartMutation.isPending}
-              >
-                Add to cart
-              </button>
+            <div className="card-body">
+              <h3 className="entity-title">{product.name}</h3>
+              <p className="entity-description">{product.description ?? "No description"}</p>
+              <p className="entity-main">{money(product.price)}</p>
+              <div className="entity-meta">
+                <span className="badge">Stock: {product.stock}</span>
+              </div>
+              <div className="catalog-product-actions">
+                <Link className="button-like" to={`/shop/${product.slug}`}>
+                  Details
+                </Link>
+                <button
+                  className="btn"
+                  onClick={() => addToCartMutation.mutate(product.id)}
+                  disabled={addToCartMutation.isPending || product.stock < 1}
+                >
+                  Add to cart
+                </button>
+              </div>
             </div>
           </article>
         ))}

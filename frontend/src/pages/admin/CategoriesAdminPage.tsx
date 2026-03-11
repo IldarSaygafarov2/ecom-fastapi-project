@@ -43,6 +43,7 @@ export default function CategoriesAdminPage() {
           />
         </label>
         <button
+          className="btn"
           disabled={!name.trim() || createMutation.isPending}
           onClick={() => createMutation.mutate({ name, description: description || undefined })}
         >
@@ -70,7 +71,7 @@ export default function CategoriesAdminPage() {
                   <div className="entity-meta">
                     <span className="badge">ID: {category.id}</span>
                   </div>
-                  <button onClick={() => deleteMutation.mutate(category.id)}>Delete</button>
+                  <button className="btn btn-danger" onClick={() => deleteMutation.mutate(category.id)}>Delete</button>
                 </article>
               ))}
             </div>
