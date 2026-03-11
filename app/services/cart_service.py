@@ -38,7 +38,7 @@ class CartService:
 
         product.stock -= quantity
         await self.product_repo.update(product)
-        await self._invalidate_product_cache(product_id)
+        await self._invalidate_product_cache(product_id, product.slug)
 
         if item:
             item.quantity = new_total
@@ -61,7 +61,7 @@ class CartService:
         if product:
             product.stock += item.quantity
             await self.product_repo.update(product)
-            await self._invalidate_product_cache(product_id)
+            await self._invalidate_product_cache(product_id, product.slug)
         await self.cart_repo.remove_item(cart.id, product_id)
         return await self.get_cart(user_id)
 
@@ -70,13 +70,15 @@ class CartService:
         for item in cart.items:
             item.product.stock += item.quantity
             await self.product_repo.update(item.product)
-            await self._invalidate_product_cache(item.product_id)
+            await self._invalidate_product_cache(item.product_id, item.product.slug)
         await self.cart_repo.clear(cart.id)
 
     @staticmethod
-    async def _invalidate_product_cache(product_id: int) -> None:
+    async def _invalidate_product_cache(product_id: int, slug: str | None = None) -> None:
         await delete_by_prefix("products:list:")
         await delete_by_prefix(f"products:detail:{product_id}")
+        if slug:
+            await delete_by_prefix(f"products:slug:{slug}")
 
     @staticmethod
     def _to_schema(cart) -> CartRead:
