@@ -28,12 +28,13 @@ export default function ProductPage() {
     enabled: Boolean(productQuery.data?.id),
   })
 
+  const productId = productQuery.data?.id
   const createCommentMutation = useMutation({
     mutationFn: () =>
       commentsApi.create(productQuery.data!.id, { content: commentText }),
     onSuccess: () => {
       setCommentText("")
-      queryClient.invalidateQueries({ queryKey: ["product", productSlug, "comments"] })
+      queryClient.invalidateQueries({ queryKey: ["product", productId, "comments"] })
     },
   })
 
@@ -41,7 +42,7 @@ export default function ProductPage() {
     mutationFn: (commentId: number) =>
       commentsApi.remove(productQuery.data!.id, commentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["product", productSlug, "comments"] })
+      queryClient.invalidateQueries({ queryKey: ["product", productId, "comments"] })
     },
   })
 
