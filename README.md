@@ -74,6 +74,11 @@ cp .env.example .env
 Update `.env` values:
 - `SECRET_KEY` (use a long random key)
 - `CORS_ORIGINS` (your frontend domain(s))
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — and keep `DATABASE_URL`, `ALEMBIC_DATABASE_URL` in sync
+
+**Важно:** пароль PostgreSQL сохраняется в volume при первой инициализации. Если при перезапуске возникает ошибка аутентификации — volume был создан с другим паролем. Варианты:
+- **Сбросить БД (данные удалятся):** `docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v` затем снова `up -d --build`
+- **Сохранить данные:** сменить пароль вручную внутри контейнера Postgres (см. документацию PostgreSQL)
 
 ### 3) Production profile
 
