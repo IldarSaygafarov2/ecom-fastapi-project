@@ -9,10 +9,9 @@ services:
       - db
       - redis
     command: >
-      sh -c "alembic upgrade head &&
-      gunicorn -k uvicorn.workers.UvicornWorker -c gunicorn_conf.py app.main:app"
+      sh -c "alembic upgrade head && gunicorn -k uvicorn.workers.UvicornWorker -c gunicorn_conf.py app.main:app"
     ports:
-      - "8000:8000"
+      - "8001:8000"
 
   worker:
     build: .

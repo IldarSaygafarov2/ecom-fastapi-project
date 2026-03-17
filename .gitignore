@@ -49,3 +49,5 @@ frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
+
+LESSON_GUIDE_BACKEND.md
